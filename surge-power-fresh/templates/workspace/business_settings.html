@@ -1,0 +1,15 @@
+
+        <div class="workspace-heading"><div><p class="eyebrow">BUSINESS PROFILE</p><h1>Business settings</h1><p>Keep public contact details and document terms in one place.</p></div></div>
+        <form method="post" class="panel form-grid settings-form"><input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+        <label>Business name<input name="company_name" value="{{profile.company_name}}" maxlength="120" required></label>
+        <label>Public phone<input name="phone" type="tel" value="{{profile.phone}}" maxlength="40" required></label>
+        <label>Public email<input name="email" type="email" value="{{profile.email}}" maxlength="200"></label>
+        <label>Business address<input name="business_address" value="{{profile.business_address}}" maxlength="220" placeholder="Optional · shown on billing documents"></label>
+        <label>Service area<input name="service_area" value="{{profile.service_area}}" maxlength="180" required></label>
+        <label>Arizona ROC number<input name="roc_number" value="{{profile.roc_number}}" maxlength="40"></label>
+        <label>License / insurance statement<input name="license_statement" value="{{profile.license_statement}}" maxlength="160"></label>
+        <label>Business hours<input name="business_hours" value="{{profile.business_hours}}" maxlength="180" placeholder="Set only after confirming current hours"></label>
+        <label>Invoice terms<textarea name="invoice_terms" rows="3" maxlength="500">{{profile.invoice_terms}}</textarea></label>
+        <label>Payment instructions<textarea name="payment_instructions" rows="3" maxlength="500">{{profile.payment_instructions}}</textarea></label>
+        <p class="span-full settings-note">Verify all public claims before publishing. Tax, deposit, warranty, and response-time rules remain owner-defined.</p><p class="span-full"><a href="{{url_for('audit_history')}}">Activity history →</a> · <a href="{{url_for('workspace_users')}}">Manage accounts →</a> · <a href="{{url_for('inquiry_archive')}}">Archived projects →</a></p>
+        <button class="primary-action">Save business settings</button></form>
