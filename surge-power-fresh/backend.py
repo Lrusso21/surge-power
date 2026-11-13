@@ -373,3 +373,5 @@ from workspace_upgrade import install_workspace_upgrade
 install_workspace_upgrade(app)
 from workspace_phase_two import install_phase_two
 install_phase_two(app)
+from site_improvements import install as install_site_improvements
+install_site_improvements(app)
