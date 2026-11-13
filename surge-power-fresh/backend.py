@@ -352,6 +352,20 @@ def create_app(config=None):
 
 app=create_app()
 
+@app.get('/health/live')
+def health_live():
+    return {'status': 'ok'}, 200, {'Cache-Control': 'no-store'}
+
+@app.get('/health/ready')
+def health_ready():
+    try:
+        # Query an application table to detect missing migrations as well as outages.
+        db.session.query(User.id).limit(1).all()
+        return {'status': 'ready'}, 200, {'Cache-Control': 'no-store'}
+    except Exception:
+        db.session.rollback()
+        return {'status': 'unavailable'}, 503, {'Cache-Control': 'no-store'}
+
 # The workflow layer keeps the original inquiry data intact while adding the
 # connected owner experience (dashboard, tasks, itemized documents and
 # editable appointments) in a focused module.

@@ -6,3 +6,5 @@ Flask-Migrate==4.0.7
 argon2-cffi==23.1.0
 reportlab==4.2.5
 pytest==8.3.4
+gunicorn==23.0.0
+psycopg[binary]==3.2.3
