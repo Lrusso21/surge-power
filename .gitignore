@@ -1,0 +1,30 @@
+# Local work, build artifacts, and dependencies
+work/
+node_modules/
+dist/
+build/
+.cache/
+.temp/
+tmp/
+
+# Environment files and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+credentials*.json
+service-account*.json
+
+# Logs and operating-system files
+*.log
+.DS_Store
+
+# Editor and test artifacts
+.vscode/
+.idea/
+coverage/
