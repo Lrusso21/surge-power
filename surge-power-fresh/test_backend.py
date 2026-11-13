@@ -8,6 +8,12 @@ def client(tmp_path):
     app=create_app({'TESTING':True,'SECRET_KEY':'test-secret','SQLALCHEMY_DATABASE_URI':'sqlite:///'+str(tmp_path/'test.db'),'WTF_CSRF_ENABLED':False})
     install_workspace_upgrade(app)
     install_phase_two(app)
+    from site_improvements import install as install_site
+    from operations import install as install_operations
+    install_site(app)
+    install_operations(app)
+    from account_recovery import install as install_recovery
+    install_recovery(app)
     with app.app_context():
         db.create_all(); owner=User(email='owner@example.invalid',password_hash=ph.hash('test-password-123')); db.session.add(owner); db.session.flush(); db.session.add(AccountAccess(user_id=owner.id,role='owner',active=True)); db.session.commit()
         yield app.test_client()
@@ -15,6 +21,51 @@ def client(tmp_path):
 
 def sign_in(client):
     return client.post('/owner/login',data={'email':'owner@example.invalid','password':'test-password-123'})
+
+def test_search_bulk_undo_presets_and_calendar_export(client):
+    inquiry(client); sign_in(client)
+    assert client.get('/owner/search?q=Demo').status_code == 200
+    assert client.post('/owner/tools', data={'action':'bulk','stage':'qualified','inquiry_id':'1'}).status_code == 302
+    assert db.session.get(Inquiry, 1).stage == 'qualified'
+    assert client.post('/owner/tools', data={'action':'undo','batch_id':'1'}).status_code == 302
+    assert db.session.get(Inquiry, 1).stage == 'new'
+    client.post('/owner/tools', data={'action':'preset','name':'Circuit','description':'Dedicated circuit','price':'150.00'})
+    assert b'Dedicated circuit' in client.get('/owner/tools').data
+    assert client.get('/owner/calendar/export.ics').mimetype == 'text/calendar'
+
+def test_bulk_undo_preserves_newer_edits(client):
+    inquiry(client); sign_in(client)
+    client.post('/owner/tools', data={'action':'bulk','stage':'qualified','inquiry_id':'1'})
+    item = db.session.get(Inquiry, 1); item.stage = 'won'; db.session.commit()
+    response = client.post('/owner/tools', data={'action':'undo','batch_id':'1'}, follow_redirects=True)
+    assert b'overwrite newer work' in response.data
+    assert db.session.get(Inquiry, 1).stage == 'won'
+
+def test_password_recovery_single_use(client):
+    import hashlib
+    from datetime import timedelta
+    from backend import utc_now
+    from account_recovery import PasswordRecovery
+    token = 'test-recovery-token'
+    db.session.add(PasswordRecovery(user_id=1, digest=hashlib.sha256(token.encode()).hexdigest(), expires=utc_now()+timedelta(minutes=5)))
+    db.session.commit()
+    path = '/owner/reset-password?token=' + token
+    assert client.get(path).status_code == 200
+    assert client.post(path, data={'password':'new-long-password-123','confirm':'new-long-password-123'}).status_code == 302
+    assert client.get(path).status_code == 400
+    assert client.post('/owner/login', data={'email':'owner@example.invalid','password':'test-password-123'}).status_code == 200
+    assert client.post('/owner/login', data={'email':'owner@example.invalid','password':'new-long-password-123'}).status_code == 302
+
+def test_reminder_preview_does_not_send(client):
+    result = client.application.test_cli_runner().invoke(args=['process-reminders'])
+    assert result.exit_code == 0
+    assert 'No messages sent' in result.output
+
+def test_staff_cannot_bulk_change(client):
+    sign_in(client)
+    access = db.session.get(AccountAccess, 1); access.role = 'staff'; db.session.commit()
+    assert client.get('/owner/tools').status_code == 403
+    assert client.post('/owner/tools', data={'action':'bulk','stage':'won','inquiry_id':'1'}).status_code == 403
 
 def inquiry(client):
     return client.post('/inquiry',data={'name':'Demo','contact':'demo@example.invalid','service':'EV charger installation','location':'Mesa','details':'Example','consent':'yes','preferred_contact':'email','best_time':'morning','property_type':'home'},follow_redirects=True)

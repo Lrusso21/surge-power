@@ -160,7 +160,8 @@ def create_app(config=None):
         base=os.environ.get('PUBLIC_BASE_URL','').rstrip('/')
         if not base.startswith(('https://','http://')): return app.response_class('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',mimetype='application/xml')
         from xml.sax.saxutils import escape
-        return app.response_class('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>'+escape(base+'/')+'</loc></url><url><loc>'+escape(base+'/privacy')+'</loc></url></urlset>',mimetype='application/xml')
+        paths = ['/', '/privacy', '/services/ev-charging', '/services/electrical', '/services/garage-lighting']
+        return app.response_class('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+''.join('<url><loc>'+escape(base+path)+'</loc></url>' for path in paths)+'</urlset>',mimetype='application/xml')
     @app.route('/owner/login',methods=['GET','POST'])
     def signin():
         if request.method=='POST':
@@ -375,3 +376,7 @@ from workspace_phase_two import install_phase_two
 install_phase_two(app)
 from site_improvements import install as install_site_improvements
 install_site_improvements(app)
+from operations import install as install_operations
+install_operations(app)
+from account_recovery import install as install_account_recovery
+install_account_recovery(app)

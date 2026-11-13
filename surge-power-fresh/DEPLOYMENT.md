@@ -35,4 +35,12 @@ Keep the previous container image/revision available. Roll back application code
 
 ## Deferred capabilities
 
+## Operational additions
+
+`/owner/tools` provides manager/owner service presets, bulk stage changes with guarded undo, and matching-contact customer job merges. The source customer remains in history. `/owner/search` searches inquiries, customers and document numbers. Calendar export downloads an iCalendar file for manual import; it is not two-way synchronization.
+
+Schedule `flask --app backend process-reminders` to preview eligibility. After SMTP is verified, a single daily scheduler may run `flask --app backend process-reminders --send`. It sends next-day visit reminders and weekly overdue-invoice reminders to email contacts, retaining sent/failed history. Run only one scheduler to avoid concurrent duplicate delivery. This does not activate a scheduler automatically.
+
+Password recovery uses single-use, hashed tokens expiring after 30 minutes. It requires a verified SMTP sender and an HTTPS `PUBLIC_BASE_URL`. Until configured, recovery requests show a generic response and send nothing; the secure console reset remains available. Review existing session revocation and MFA requirements before production launch.
+
 Hosted card payments, SMS delivery, recurring reminders, external calendar sync, secure photo uploads, self-service password recovery/MFA, crew availability and automatic retention are not enabled by this deployment package. Each needs its own implementation and acceptance testing. Hosting and email account selection remain pending; no paid service is provisioned by these files.

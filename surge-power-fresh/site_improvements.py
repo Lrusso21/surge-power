@@ -53,6 +53,7 @@ def install(app):
     def discoverability(response):
         if response.mimetype == 'text/html' and response.status_code == 200:
             html = response.get_data(as_text=True)
+            html = html.replace('</head>', '<link rel="stylesheet" href="/static/final-polish.css?v=1"><script src="/static/final-polish.js?v=1" defer></script></head>')
             if request.path == '/':
                 links = ' · '.join(f'<a href="/services/{slug}">{escape(data[0])}</a>' for slug, data in services.items())
                 html = html.replace('</footer>', '<nav aria-label="Service information">' + links + '</nav></footer>')
